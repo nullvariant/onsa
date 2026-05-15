@@ -1,0 +1,25 @@
+{
+  "name": "@nullvariant/onsa-stylelint-config",
+  "version": "0.1.0",
+  "description": "Shared Stylelint configuration for nullvariant ecosystem — STD-00011 compliance",
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "files": [
+    "index.mjs"
+  ],
+  "dependencies": {
+    "stylelint": "^17.11.1",
+    "stylelint-config-standard": "^40.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nullvariant/onsa.git",
+    "directory": "packages/stylelint-config"
+  },
+  "license": "MIT"
+}
