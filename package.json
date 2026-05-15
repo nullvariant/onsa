@@ -4,5 +4,24 @@
   "packageManager": "pnpm@11.1.2",
   "engines": {
     "node": ">=24"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "bash -c 'if find packages -name \"*.ts\" -o -name \"*.mts\" | grep -q .; then tsc --noEmit; else echo \"typecheck: skipped (no .ts inputs)\"; fi'"
+  },
+  "devDependencies": {
+    "@nullvariant/onsa-eslint-config": "workspace:*",
+    "@nullvariant/onsa-tsconfig": "workspace:*",
+    "eslint": "^10.3.0",
+    "typescript": "^6.0.3"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "eslint-plugin-jsx-a11y": {
+          "eslint": ">=10"
+        }
+      }
+    }
   }
 }
