@@ -1,0 +1,26 @@
+{
+  "name": "@nullvariant/onsa-htmlhint-config",
+  "version": "0.1.0",
+  "description": "Shared HTMLHint configuration for nullvariant ecosystem — STD-00011 compliance",
+  "type": "module",
+  "exports": {
+    ".": "./index.mjs",
+    "./.htmlhintrc": "./.htmlhintrc"
+  },
+  "files": [
+    "index.mjs",
+    ".htmlhintrc"
+  ],
+  "dependencies": {
+    "htmlhint": "^1.9.2"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nullvariant/onsa.git",
+    "directory": "packages/htmlhint-config"
+  },
+  "license": "MIT"
+}
