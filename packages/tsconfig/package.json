@@ -1,0 +1,25 @@
+{
+  "name": "@nullvariant/onsa-tsconfig",
+  "version": "0.1.0",
+  "description": "Shared TypeScript configurations for nullvariant ecosystem",
+  "type": "module",
+  "exports": {
+    "./base.json": "./base.json",
+    "./cloudflare-worker.json": "./cloudflare-worker.json",
+    "./node.json": "./node.json"
+  },
+  "files": [
+    "base.json",
+    "cloudflare-worker.json",
+    "node.json"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nullvariant/onsa.git",
+    "directory": "packages/tsconfig"
+  },
+  "license": "MIT"
+}
