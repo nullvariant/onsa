@@ -1,0 +1,28 @@
+{
+  "name": "@nullvariant/onsa-biome-config",
+  "version": "0.1.0",
+  "description": "Shared Biome formatter configuration for nullvariant ecosystem — STD-00011 compliance",
+  "type": "module",
+  "bin": {
+    "biome": "./bin/biome.mjs"
+  },
+  "exports": {
+    "./biome": "./biome.json"
+  },
+  "files": [
+    "biome.json",
+    "bin/biome.mjs"
+  ],
+  "dependencies": {
+    "@biomejs/biome": "^2.4.15"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nullvariant/onsa.git",
+    "directory": "packages/biome-config"
+  },
+  "license": "MIT"
+}
