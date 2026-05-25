@@ -10,6 +10,7 @@
     "typecheck": "bash -c 'if find packages -name \"*.ts\" -o -name \"*.mts\" | grep -q .; then tsc --noEmit; else echo \"typecheck: skipped (no .ts inputs)\"; fi'"
   },
   "devDependencies": {
+    "@nullvariant/onsa-biome-config": "workspace:*",
     "@nullvariant/onsa-eslint-config": "workspace:*",
     "@nullvariant/onsa-htmlhint-config": "workspace:*",
     "@nullvariant/onsa-stylelint-config": "workspace:*",

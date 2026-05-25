@@ -6,11 +6,24 @@ export default [
   ...security,
   ...test,
   {
+    files: ["packages/*/bin/*.mjs"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+      },
+    },
+  },
+  {
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: import.meta.dirname,
         projectService: {
-          allowDefaultProject: ["*.mjs", "packages/*/index.mjs"],
+          allowDefaultProject: [
+            "*.mjs",
+            "packages/*/index.mjs",
+            "packages/*/bin/*.mjs",
+          ],
         },
       },
     },
