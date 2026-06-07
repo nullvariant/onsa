@@ -16,56 +16,56 @@ import tseslint from "typescript-eslint";
 
 /** @type {import("eslint").Linter.Config[]} */
 export const base = [
-  eslint.configs.recommended,
-  sonarjs.configs.recommended,
-  unicorn.configs["recommended"],
-  {
-    plugins: {
-      "simple-import-sort": simpleImportSort,
-      "import-x": importX,
-    },
-    rules: {
-      // B1-B7: Basic quality
-      "no-var": "error",
-      "prefer-const": "error",
-      eqeqeq: "error",
-      "no-console": ["warn", { allow: ["warn", "error"] }],
+	eslint.configs.recommended,
+	sonarjs.configs.recommended,
+	unicorn.configs["recommended"],
+	{
+		plugins: {
+			"simple-import-sort": simpleImportSort,
+			"import-x": importX,
+		},
+		rules: {
+			// B1-B7: Basic quality
+			"no-var": "error",
+			"prefer-const": "error",
+			eqeqeq: "error",
+			"no-console": ["warn", { allow: ["warn", "error"] }],
 
-      // Guardrail #4: Error handling — no-empty is in eslint recommended
+			// Guardrail #4: Error handling — no-empty is in eslint recommended
 
-      // Guardrail #7: Cognitive Complexity
-      "sonarjs/cognitive-complexity": ["error", 15],
+			// Guardrail #7: Cognitive Complexity
+			"sonarjs/cognitive-complexity": ["error", 15],
 
-      // Guardrail #9: Bit ops / legacy API
-      "no-bitwise": "error",
-      "unicorn/prefer-number-properties": "error",
+			// Guardrail #9: Bit ops / legacy API
+			"no-bitwise": "error",
+			"unicorn/prefer-number-properties": "error",
 
-      // Guardrail #14: Promise quality
-      "prefer-promise-reject-errors": "error",
+			// Guardrail #14: Promise quality
+			"prefer-promise-reject-errors": "error",
 
-      // Guardrail #16: SonarQube patterns
-      "import-x/no-duplicates": "error",
-      "unicorn/prefer-string-replace-all": "error",
-      "unicorn/prefer-set-has": "error",
-      "unicorn/numeric-separators-style": "error",
+			// Guardrail #16: SonarQube patterns
+			"import-x/no-duplicates": "error",
+			"unicorn/prefer-string-replace-all": "error",
+			"unicorn/prefer-set-has": "error",
+			"unicorn/numeric-separators-style": "error",
 
-      // Import sorting
-      "simple-import-sort/imports": "warn",
-      "simple-import-sort/exports": "warn",
+			// Import sorting
+			"simple-import-sort/imports": "warn",
+			"simple-import-sort/exports": "warn",
 
-      // Unicorn overrides (disable overly opinionated rules)
-      "unicorn/no-null": "off",
-      "unicorn/prevent-abbreviations": "off",
-      "unicorn/filename-case": "off",
-      "unicorn/no-abusive-eslint-disable": "off",
-      "unicorn/import-style": "off",
-      "unicorn/prefer-top-level-await": "off",
-      "unicorn/prefer-module": "off",
-    },
-    linterOptions: {
-      reportUnusedDisableDirectives: "warn",
-    },
-  },
+			// Unicorn overrides (disable overly opinionated rules)
+			"unicorn/no-null": "off",
+			"unicorn/prevent-abbreviations": "off",
+			"unicorn/filename-case": "off",
+			"unicorn/no-abusive-eslint-disable": "off",
+			"unicorn/import-style": "off",
+			"unicorn/prefer-top-level-await": "off",
+			"unicorn/prefer-module": "off",
+		},
+		linterOptions: {
+			reportUnusedDisableDirectives: "warn",
+		},
+	},
 ];
 
 // ---------------------------------------------------------------------------
@@ -77,43 +77,43 @@ export const base = [
 
 /** @type {import("eslint").Linter.Config[]} */
 export const typescript = [
-  ...tseslint.configs.recommended,
-  {
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-      },
-    },
-    rules: {
-      // B3/B4: Unused vars/imports
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          caughtErrorsIgnorePattern: "^_|^error$",
-        },
-      ],
+	...tseslint.configs.recommended,
+	{
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+			},
+		},
+		rules: {
+			// B3/B4: Unused vars/imports
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{
+					argsIgnorePattern: "^_",
+					varsIgnorePattern: "^_",
+					caughtErrorsIgnorePattern: "^_|^error$",
+				},
+			],
 
-      // Type safety
-      "@typescript-eslint/no-explicit-any": "error",
+			// Type safety
+			"@typescript-eslint/no-explicit-any": "error",
 
-      // Guardrail #10: Readonly
-      "@typescript-eslint/prefer-readonly": "error",
+			// Guardrail #10: Readonly
+			"@typescript-eslint/prefer-readonly": "error",
 
-      // Guardrail #12: Modern API
-      "@typescript-eslint/prefer-optional-chain": "error",
-      "unicorn/prefer-node-protocol": "error",
-      "unicorn/prefer-regexp-test": "error",
-      "unicorn/prefer-string-starts-ends-with": "error",
+			// Guardrail #12: Modern API
+			"@typescript-eslint/prefer-optional-chain": "error",
+			"unicorn/prefer-node-protocol": "error",
+			"unicorn/prefer-regexp-test": "error",
+			"unicorn/prefer-string-starts-ends-with": "error",
 
-      // Guardrail #14: Promise quality (type-aware)
-      "@typescript-eslint/no-floating-promises": "error",
+			// Guardrail #14: Promise quality (type-aware)
+			"@typescript-eslint/no-floating-promises": "error",
 
-      // Guardrail #16: SonarQube patterns (type-aware)
-      "@typescript-eslint/no-unnecessary-type-assertion": "error",
-    },
-  },
+			// Guardrail #16: SonarQube patterns (type-aware)
+			"@typescript-eslint/no-unnecessary-type-assertion": "error",
+		},
+	},
 ];
 
 // ---------------------------------------------------------------------------
@@ -125,14 +125,14 @@ export const typescript = [
 
 /** @type {import("eslint").Linter.Config[]} */
 export const security = [
-  {
-    rules: {
-      "no-eval": "error",
-      "no-implied-eval": "error",
-      "no-new-func": "error",
-      "sonarjs/slow-regex": "error",
-    },
-  },
+	{
+		rules: {
+			"no-eval": "error",
+			"no-implied-eval": "error",
+			"no-new-func": "error",
+			"sonarjs/slow-regex": "error",
+		},
+	},
 ];
 
 // ---------------------------------------------------------------------------
@@ -141,21 +141,21 @@ export const security = [
 
 /** @type {import("eslint").Linter.Config[]} */
 export const react = [
-  jsxA11y.flatConfigs.recommended,
-  {
-    ...eslintReact.configs["recommended-type-checked"],
-    rules: {
-      ...eslintReact.configs["recommended-type-checked"].rules,
-      "@eslint-react/dom/no-missing-button-type": "error",
-    },
-  },
-  {
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-      },
-    },
-  },
+	jsxA11y.flatConfigs.recommended,
+	{
+		...eslintReact.configs["recommended-type-checked"],
+		rules: {
+			...eslintReact.configs["recommended-type-checked"].rules,
+			"@eslint-react/dom/no-missing-button-type": "error",
+		},
+	},
+	{
+		languageOptions: {
+			globals: {
+				...globals.browser,
+			},
+		},
+	},
 ];
 
 // ---------------------------------------------------------------------------
@@ -164,8 +164,8 @@ export const react = [
 
 /** @type {import("eslint").Linter.Config[]} */
 export const astro = [
-  ...astroPlugin.configs.recommended,
-  ...astroPlugin.configs["jsx-a11y-recommended"],
+	...astroPlugin.configs.recommended,
+	...astroPlugin.configs["jsx-a11y-recommended"],
 ];
 
 // ---------------------------------------------------------------------------
@@ -174,17 +174,17 @@ export const astro = [
 
 /** @type {import("eslint").Linter.Config[]} */
 export const test = [
-  {
-    files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
-    rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-      "no-console": "off",
-      "no-bitwise": "off",
-      "sonarjs/no-empty-test-file": "off",
-      "sonarjs/no-hardcoded-passwords": "off",
-      "sonarjs/no-nested-functions": "off",
-      "sonarjs/no-redundant-jump": "off",
-      "unicorn/consistent-function-scoping": "off",
-    },
-  },
+	{
+		files: ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+		rules: {
+			"@typescript-eslint/no-explicit-any": "off",
+			"no-console": "off",
+			"no-bitwise": "off",
+			"sonarjs/no-empty-test-file": "off",
+			"sonarjs/no-hardcoded-passwords": "off",
+			"sonarjs/no-nested-functions": "off",
+			"sonarjs/no-redundant-jump": "off",
+			"unicorn/consistent-function-scoping": "off",
+		},
+	},
 ];
