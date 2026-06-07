@@ -1,37 +1,41 @@
 {
-  "name": "@nullvariant/onsa-eslint-config",
-  "version": "0.1.0",
-  "description": "Shared ESLint configuration for nullvariant ecosystem — STD-00011 compliance",
-  "type": "module",
-  "exports": {
-    ".": "./index.mjs"
-  },
-  "files": [
-    "index.mjs"
-  ],
-  "dependencies": {
-    "@eslint-react/eslint-plugin": "^5.7.8",
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.3.0",
-    "eslint-plugin-astro": "^1.7.0",
-    "eslint-plugin-import-x": "^4.16.2",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
-    "eslint-plugin-simple-import-sort": "^13.0.0",
-    "eslint-plugin-sonarjs": "^4.0.3",
-    "eslint-plugin-unicorn": "^64.0.0",
-    "globals": "^17.6.0",
-    "typescript-eslint": "^8.59.3"
-  },
-  "peerDependencies": {
-    "typescript": ">=5.0.0"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/nullvariant/onsa.git",
-    "directory": "packages/eslint-config"
-  },
-  "license": "MIT"
+	"name": "@nullvariant/onsa-eslint-config",
+	"version": "0.1.0",
+	"description": "Shared ESLint configuration for nullvariant ecosystem — STD-00011 compliance",
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./index.d.mts",
+			"default": "./index.mjs"
+		}
+	},
+	"files": [
+		"index.mjs",
+		"index.d.mts"
+	],
+	"dependencies": {
+		"@eslint-react/eslint-plugin": "^5.7.8",
+		"@eslint/js": "^10.0.1",
+		"eslint": "^10.3.0",
+		"eslint-plugin-astro": "^1.7.0",
+		"eslint-plugin-import-x": "^4.16.2",
+		"eslint-plugin-jsx-a11y": "^6.10.2",
+		"eslint-plugin-simple-import-sort": "^13.0.0",
+		"eslint-plugin-sonarjs": "^4.0.3",
+		"eslint-plugin-unicorn": "^64.0.0",
+		"globals": "^17.6.0",
+		"typescript-eslint": "^8.59.3"
+	},
+	"peerDependencies": {
+		"typescript": ">=5.0.0"
+	},
+	"publishConfig": {
+		"registry": "https://npm.pkg.github.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nullvariant/onsa.git",
+		"directory": "packages/eslint-config"
+	},
+	"license": "MIT"
 }

@@ -18,7 +18,10 @@ import { fileURLToPath } from "node:url";
 
 /** @type {Record<string, boolean | string>} */
 const config = JSON.parse(
-  readFileSync(join(dirname(fileURLToPath(import.meta.url)), ".htmlhintrc"), "utf8"),
+	readFileSync(
+		join(dirname(fileURLToPath(import.meta.url)), ".htmlhintrc"),
+		"utf8",
+	),
 );
 
 export default config;
