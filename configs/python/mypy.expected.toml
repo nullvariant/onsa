@@ -1,0 +1,29 @@
+# Expected mypy configuration values for CI conformance checking.
+# Authority: source code quality tooling standard.
+# Consumer repositories must include these values in their pyproject.toml
+# [tool.mypy] section.
+#
+# Note: --strict is NOT used as an abstract reference because its composition
+# varies across mypy versions. All flags are explicitly listed instead.
+
+[tool.mypy]
+# --- strict-equivalent flags (mypy >=2.1,<2.2) ---
+warn_unused_configs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_reexport = true
+strict_equality = true
+strict_bytes = true
+extra_checks = true
+
+# --- Any bypass prohibition (beyond --strict) ---
+disallow_any_explicit = true
+disallow_any_unimported = true

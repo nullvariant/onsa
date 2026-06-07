@@ -1,0 +1,19 @@
+# Shared gitleaks configuration for cross-repository secret scanning.
+# Authority: source code quality tooling standard.
+#
+# This file defines detection patterns only.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "npmrc-github-token"
+description = "Literal GitHub token in .npmrc"
+regex = '''_authToken\s*=\s*(ghp_|github_pat_|gho_|ghs_)[A-Za-z0-9_]+'''
+path = '''(^|/)\.npmrc$'''
+
+[[rules]]
+id = "npmrc-npm-token"
+description = "Literal npm token in .npmrc"
+regex = '''_authToken\s*=\s*npm_[A-Za-z0-9_]+'''
+path = '''(^|/)\.npmrc$'''
