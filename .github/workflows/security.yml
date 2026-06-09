@@ -1,0 +1,204 @@
+name: Security
+
+on:
+  workflow_call:
+    inputs:
+      enable-dependency-review:
+        description: "Enable dependency vulnerability scanning"
+        type: boolean
+        default: true
+      enable-semgrep:
+        description: "Enable Semgrep SAST scanning"
+        type: boolean
+        default: true
+      enable-gitleaks:
+        description: "Enable gitleaks secret scanning"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    if: ${{ inputs.enable-dependency-review }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+
+  semgrep:
+    name: Semgrep SAST
+    if: ${{ inputs.enable-semgrep }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      image: semgrep/semgrep
+    # harden-runner is incompatible with container jobs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Run Semgrep
+        run: semgrep scan --config auto --error
+
+  gitleaks:
+    name: Gitleaks Secret Scan
+    if: ${{ inputs.enable-gitleaks }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  gitleaks-config-conformance:
+    name: Gitleaks Config Conformance
+    if: ${{ inputs.enable-gitleaks }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Checkout onsa configs
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: nullvariant/onsa
+          path: .onsa-configs
+          sparse-checkout: configs/gitleaks
+          persist-credentials: false
+
+      - name: Check gitleaks.toml conformance
+        run: |
+          expected=".onsa-configs/configs/gitleaks/.gitleaks.toml"
+          actual=".gitleaks.toml"
+
+          if [ ! -f "$actual" ]; then
+            echo "::error::.gitleaks.toml not found in repository root"
+            exit 1
+          fi
+
+          if [ ! -f "$expected" ]; then
+            echo "::error::Expected gitleaks config not found at $expected"
+            exit 1
+          fi
+
+          missing=0
+
+          expected_rules=$(sed -n 's/.*id = "\([^"]*\)".*/\1/p' "$expected")
+          for rule_id in $expected_rules; do
+            if ! grep -q "id = \"$rule_id\"" "$actual"; then
+              echo "::error::Missing required gitleaks rule: $rule_id"
+              missing=$((missing + 1))
+            fi
+          done
+
+          if ! grep -q 'useDefault.*=.*true' "$actual"; then
+            echo "::error::gitleaks.toml must include useDefault = true in [extend] section"
+            missing=$((missing + 1))
+          fi
+
+          if [ "$missing" -gt 0 ]; then
+            echo "::error::$missing required patterns missing from .gitleaks.toml"
+            exit 1
+          fi
+
+          echo "All required gitleaks patterns present"
+
+  workflow-tag-conformance:
+    name: Workflow Tag Reference Conformance
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Check reusable workflow references
+        run: |
+          violations=0
+          workflow_dir=".github/workflows"
+
+          if [ ! -d "$workflow_dir" ]; then
+            echo "No .github/workflows/ directory found, skipping"
+            exit 0
+          fi
+
+          for file in "$workflow_dir"/*.yml "$workflow_dir"/*.yaml; do
+            [ -f "$file" ] || continue
+
+            while IFS= read -r line; do
+              line_num="${line%%:*}"
+              content="${line#*:}"
+
+              ref=$(echo "$content" | sed -n 's/.*nullvariant\/onsa\/[^@]*@\([^ ]*\).*/\1/p')
+
+              if [ -z "$ref" ]; then
+                continue
+              fi
+
+              # Allow: tag references (@v*) and SHA pin references (40 hex chars)
+              case "$ref" in
+                v[0-9]*) continue ;;
+              esac
+              if echo "$ref" | grep -qE '^[0-9a-f]{40}$'; then
+                continue
+              fi
+
+              echo "::error file=$file,line=$line_num::Branch reference detected: nullvariant/onsa/...@$ref (must use @v* tag or @SHA)"
+              violations=$((violations + 1))
+
+            done < <(grep -n 'uses:.*nullvariant/onsa/' "$file" 2>/dev/null || true)
+          done
+
+          if [ "$violations" -gt 0 ]; then
+            echo "::error::$violations branch reference(s) to nullvariant/onsa workflows detected"
+            exit 1
+          fi
+
+          echo "All nullvariant/onsa references use tag or SHA pinning"
