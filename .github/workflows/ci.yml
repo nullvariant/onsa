@@ -1,0 +1,267 @@
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version"
+        type: string
+        default: "24"
+      test-command:
+        description: "Test command to run (must be an allowed command)"
+        type: string
+        default: "pnpm test"
+      has-python:
+        description: "Enable Python config conformance check"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (ESLint)
+        run: pnpm lint
+
+      - name: Format check (Biome)
+        run: pnpm format:check
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm typecheck
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        env:
+          TEST_COMMAND: ${{ inputs.test-command }}
+        run: |
+          case "$TEST_COMMAND" in
+            "pnpm test"|"pnpm test:coverage"|"pnpm vitest run"|"pnpm vitest run --coverage")
+              eval "$TEST_COMMAND"
+              ;;
+            *)
+              echo "::error::Disallowed test command: $TEST_COMMAND"
+              exit 1
+              ;;
+          esac
+
+  gitignore-conformance:
+    name: .gitignore Conformance
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Checkout onsa configs
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: nullvariant/onsa
+          path: .onsa-configs
+          sparse-checkout: configs/gitignore
+          persist-credentials: false
+
+      - name: Check .gitignore security baseline
+        run: |
+          baseline=".onsa-configs/configs/gitignore/security-baseline.gitignore"
+          gitignore=".gitignore"
+
+          if [ ! -f "$gitignore" ]; then
+            echo "::error::.gitignore not found"
+            exit 1
+          fi
+
+          if [ ! -f "$baseline" ]; then
+            echo "::error::Baseline template not found at $baseline"
+            exit 1
+          fi
+
+          missing=0
+          while IFS= read -r line; do
+            case "$line" in
+              ""|\#*) continue ;;
+            esac
+            if ! grep -qFx "$line" "$gitignore"; then
+              echo "::error::Missing baseline entry: $line"
+              missing=$((missing + 1))
+            fi
+          done < "$baseline"
+
+          if [ "$missing" -gt 0 ]; then
+            echo "::error::$missing baseline entries missing from .gitignore"
+            exit 1
+          fi
+
+          echo "All baseline entries present in .gitignore"
+
+  python-config-conformance:
+    name: Python Config Conformance
+    if: ${{ inputs.has-python }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Checkout onsa configs
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: nullvariant/onsa
+          path: .onsa-configs
+          sparse-checkout: configs/python
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Check Python config conformance
+        run: |
+          pyproject="pyproject.toml"
+          if [ ! -f "$pyproject" ]; then
+            echo "::error::pyproject.toml not found"
+            exit 1
+          fi
+
+          check_toml_conformance() {
+            local expected_file="$1"
+            local target_file="$2"
+            local label="$3"
+            python3 <<PYTHON
+          import tomllib, sys, os
+          with open(os.environ["EXPECTED_FILE"], "rb") as f:
+              expected = tomllib.load(f)
+          with open(os.environ["TARGET_FILE"], "rb") as f:
+              actual = tomllib.load(f)
+          errors = []
+          for section, values in expected.items():
+              actual_section = actual.get(section, {})
+              for key, exp_val in values.items():
+                  act_val = actual_section.get(key)
+                  if act_val is None:
+                      errors.append(f"{section}.{key}: missing (expected {exp_val!r})")
+                  elif act_val != exp_val:
+                      errors.append(f"{section}.{key}: {act_val!r} != {exp_val!r}")
+          if errors:
+              for e in errors:
+                  print(f"::error::{e}", file=sys.stderr)
+              sys.exit(1)
+          else:
+              print(f"{os.environ['LABEL']} config: all mandatory flags present")
+          PYTHON
+          }
+
+          exit_code=0
+
+          echo "--- Checking ruff configuration ---"
+          EXPECTED_FILE=".onsa-configs/configs/python/ruff.expected.toml" \
+          TARGET_FILE="$pyproject" \
+          LABEL="ruff" \
+          check_toml_conformance || exit_code=1
+
+          echo "--- Checking mypy configuration ---"
+          EXPECTED_FILE=".onsa-configs/configs/python/mypy.expected.toml" \
+          TARGET_FILE="$pyproject" \
+          LABEL="mypy" \
+          check_toml_conformance || exit_code=1
+
+          exit $exit_code
