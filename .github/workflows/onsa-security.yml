@@ -1,0 +1,157 @@
+name: onsa Security
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"
+  branch_protection_rule:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  security:
+    name: Security
+    uses: ./.github/workflows/security.yml
+    with:
+      enable-dependency-review: ${{ github.event_name == 'pull_request' }}
+    permissions:
+      contents: read
+
+  codeql-analysis:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    # Skip forked PRs (no SARIF upload permission)
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
+        with:
+          languages: typescript
+          config-file: ./.github/codeql-config.yml
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
+        with:
+          category: "/language:typescript"
+
+  scorecard:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    # Only run on main branch (push, schedule) — not on PRs
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecard analysis
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload Scorecard results to Security tab
+        uses: github/codeql-action/upload-sarif@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
+        with:
+          sarif_file: results.sarif
+
+  scorecard-threshold:
+    name: Scorecard Threshold Gate
+    runs-on: ubuntu-latest
+    needs: scorecard
+    # Only run on main branch (push, schedule) — not on PRs
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Check Scorecard score threshold
+        env:
+          SCORECARD_THRESHOLD: ${{ vars.SCORECARD_THRESHOLD || '7.0' }}
+          REPO: ${{ github.repository }}
+        run: |
+          HTTP_CODE=$(curl -s -o scorecard-api.json -w "%{http_code}" \
+            "https://api.scorecard.dev/projects/github.com/${REPO}")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::warning::Could not fetch Scorecard results (HTTP ${HTTP_CODE}). Skipping threshold check."
+            echo "This may happen on the first run before results are published."
+            exit 0
+          fi
+
+          SCORE=$(jq -r '.score // empty' scorecard-api.json)
+
+          if [ -z "$SCORE" ]; then
+            echo "::warning::No score found in API response. Skipping threshold check."
+            exit 0
+          fi
+
+          echo "## OpenSSF Scorecard Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Overall score: ${SCORE} / 10.0** (threshold: ${SCORECARD_THRESHOLD})" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Score | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          jq -r '.checks[] | "| \(.name) | \(if .score < 0 then "N/A" else "\(.score)/10" end) | \(if .score < 0 then "➖" elif .score >= 7 then "✅" elif .score >= 4 then "⚠️" else "❌" end) |"' \
+            scorecard-api.json | sort >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Overall score: ${SCORE} / 10.0 (threshold: ${SCORECARD_THRESHOLD})"
+          echo ""
+          echo "Individual check scores:"
+          jq -r '.checks[] | "  \(if .score < 0 then "➖" elif .score >= 7 then "✅" elif .score >= 4 then "⚠️" else "❌" end) \(.name): \(if .score < 0 then "N/A" else "\(.score)/10" end)"' \
+            scorecard-api.json | sort
+          echo ""
+
+          BELOW=$(echo "${SCORE} ${SCORECARD_THRESHOLD}" | awk '{print ($1 < $2) ? "1" : "0"}')
+
+          if [ "$BELOW" = "1" ]; then
+            echo "::error::Scorecard score ${SCORE} is below threshold ${SCORECARD_THRESHOLD}"
+            echo ""
+            echo "Checks needing attention (score < 7):"
+            jq -r '.checks[] | select(.score >= 0 and .score < 7) | "  ❌ \(.name): \(.score)/10 — \(.reason)"' scorecard-api.json
+            exit 1
+          fi
+
+          echo "✅ Scorecard score ${SCORE} meets threshold ${SCORECARD_THRESHOLD}"
