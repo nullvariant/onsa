@@ -1,0 +1,31 @@
+# Dependabot only handles known-vulnerability alerts and their fix PRs (security updates).
+# Version-update PRs ("because a newer version exists") are switched off with open-pull-requests-limit: 0.
+# Security updates run under a separate fixed limit of 10 open PRs and are not delayed by cooldown
+# (GitHub Docs: Dependabot options reference). cooldown only matters for version updates, and is
+# kept as insurance in case they are ever enabled.
+# No Dependabot PR is merged automatically; they are merged by hand after review.
+# pnpm is handled by the "npm" ecosystem, which covers npm, pnpm and yarn.
+version: 2
+
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 0
+    cooldown:
+      default-days: 7
+
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/packages/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 0
+    cooldown:
+      default-days: 7

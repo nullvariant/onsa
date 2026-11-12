@@ -1,0 +1,59 @@
+# Local quality gate for onsa itself. The shared hooks follow configs/pre-commit/.pre-commit-config-js-ts.yaml
+# (the template this repository ships to consumers); the pnpm-based local hooks match this repository's scripts.
+#
+# Setup (the commit-msg hook is installed separately and is not touched by these):
+#   pre-commit install --hook-type pre-commit --hook-type pre-push
+#
+# Keep the rev values in step with configs/pre-commit/.pre-commit-config-js-ts.yaml.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+        args: ["--config", ".gitleaks.toml"]
+
+  - repo: local
+    hooks:
+      # Also scan the whole history before every push, so skipping pre-commit with --no-verify
+      # still stops at push (pre-commit + pre-push + CI, all unconditional). Uses gitleaks from PATH.
+      - id: gitleaks-history
+        name: gitleaks (full history, pre-push)
+        entry: gitleaks git --config .gitleaks.toml --no-banner --redact
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]
+
+      # pre-commit's file-type detection does not know .mts, so match by extension.
+      - id: biome-format
+        name: biome format (check)
+        entry: pnpm format:check
+        language: system
+        pass_filenames: false
+        files: '\.(mjs|mts|ts|json)$'
+
+      - id: eslint
+        name: eslint
+        entry: pnpm lint
+        language: system
+        pass_filenames: false
+        files: '\.(mjs|mts|ts)$'
+
+      - id: vitest-changed
+        name: vitest (changed files)
+        entry: sh -c 'git rev-parse HEAD~1 >/dev/null 2>&1 && pnpm exec vitest --changed HEAD~1 --run || pnpm exec vitest --run'
+        language: system
+        pass_filenames: false
+        files: '\.(mjs|mts|ts)$'
