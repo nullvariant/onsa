@@ -16,7 +16,7 @@ onsa has no tagged releases yet. Fixes are made on `main`, and only the latest c
 
 ## Reporting a Vulnerability
 
-Please report a suspected vulnerability by email to `security@nullvariant.com`.
+Please report a suspected vulnerability through GitHub private vulnerability reporting: open the **Security** tab of this repository and choose **Report a vulnerability**. If you cannot use GitHub for the report, email `security@nullvariant.com` instead.
 
 **Please do NOT open a public issue for a security vulnerability.**
 
