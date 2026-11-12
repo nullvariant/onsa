@@ -1,0 +1,8 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["security:only-security-updates"],
+	"timezone": "Asia/Tokyo",
+	"dependencyDashboard": { "enabled": false },
+	"platformAutomerge": false,
+	"minimumReleaseAge": "7 days"
+}
