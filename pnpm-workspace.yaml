@@ -6,3 +6,8 @@ allowBuilds:
 # Wait 7 days (10080 minutes) before taking a freshly published version, so a hijacked or
 # withdrawn release is not pulled in. pnpm's own default is 1 day.
 minimumReleaseAge: 10080
+# eslint-plugin-jsx-a11y has not yet declared ESLint 10 in its peer range.
+# pnpm 11 reads its settings from this file, not from the "pnpm" field of package.json.
+peerDependencyRules:
+  allowedVersions:
+    "eslint-plugin-jsx-a11y>eslint": ">=10"
