@@ -3,3 +3,6 @@ packages:
 allowBuilds:
   esbuild: true
   unrs-resolver: false
+# Wait 7 days (10080 minutes) before taking a freshly published version, so a hijacked or
+# withdrawn release is not pulled in. pnpm's own default is 1 day.
+minimumReleaseAge: 10080
