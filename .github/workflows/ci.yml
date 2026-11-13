@@ -216,52 +216,12 @@ jobs:
 
       - name: Check Python config conformance
         run: |
-          pyproject="pyproject.toml"
-          if [ ! -f "$pyproject" ]; then
+          if [ ! -f pyproject.toml ]; then
             echo "::error::pyproject.toml not found"
             exit 1
           fi
 
-          check_toml_conformance() {
-            local expected_file="$1"
-            local target_file="$2"
-            local label="$3"
-            python3 <<PYTHON
-          import tomllib, sys, os
-          with open(os.environ["EXPECTED_FILE"], "rb") as f:
-              expected = tomllib.load(f)
-          with open(os.environ["TARGET_FILE"], "rb") as f:
-              actual = tomllib.load(f)
-          errors = []
-          for section, values in expected.items():
-              actual_section = actual.get(section, {})
-              for key, exp_val in values.items():
-                  act_val = actual_section.get(key)
-                  if act_val is None:
-                      errors.append(f"{section}.{key}: missing (expected {exp_val!r})")
-                  elif act_val != exp_val:
-                      errors.append(f"{section}.{key}: {act_val!r} != {exp_val!r}")
-          if errors:
-              for e in errors:
-                  print(f"::error::{e}", file=sys.stderr)
-              sys.exit(1)
-          else:
-              print(f"{os.environ['LABEL']} config: all mandatory flags present")
-          PYTHON
-          }
-
-          exit_code=0
-
-          echo "--- Checking ruff configuration ---"
-          EXPECTED_FILE=".onsa-configs/configs/python/ruff.expected.toml" \
-          TARGET_FILE="$pyproject" \
-          LABEL="ruff" \
-          check_toml_conformance || exit_code=1
-
-          echo "--- Checking mypy configuration ---"
-          EXPECTED_FILE=".onsa-configs/configs/python/mypy.expected.toml" \
-          TARGET_FILE="$pyproject" \
-          LABEL="mypy" \
-          check_toml_conformance || exit_code=1
-
-          exit $exit_code
+          python3 .onsa-configs/configs/python/check_conformance.py \
+            pyproject.toml \
+            .onsa-configs/configs/python/ruff.expected.toml \
+            .onsa-configs/configs/python/mypy.expected.toml

@@ -2,6 +2,13 @@
 # Authority: source code quality tooling standard.
 # Consumer repositories must include these values in their pyproject.toml
 # [tool.ruff] / [tool.ruff.format] / [tool.ruff.lint] sections.
+#
+# How the values are compared (see check_conformance.py):
+# - Scalars and the "ignore" / "unfixable" lists must match exactly.
+# - "select" must contain every category listed here; extra categories are allowed.
+# - Every per-file-ignores pattern listed here must carry exactly these rules;
+#   extra patterns are allowed and reported as warnings.
+# - Keys not listed here (files, extend-exclude, mccabe, ...) are not checked.
 
 [tool.ruff]
 target-version = "py311"
@@ -13,5 +20,63 @@ indent-style = "space"
 line-ending = "lf"
 
 [tool.ruff.lint]
-select = ["B", "D3", "E", "F", "I", "S", "UP", "RUF"]
-ignore = ["E501"]
+select = [
+    "A",
+    "ANN",
+    "ARG",
+    "B",
+    "BLE",
+    "C4",
+    "C90",
+    "COM",
+    "D3",
+    "DTZ",
+    "E",
+    "W",
+    "EM",
+    "ERA",
+    "EXE",
+    "F",
+    "FA",
+    "FBT",
+    "FIX",
+    "FLY",
+    "FURB",
+    "G",
+    "I",
+    "INP",
+    "ISC",
+    "LOG",
+    "N",
+    "PERF",
+    "PGH",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "Q",
+    "RET",
+    "RSE",
+    "RUF",
+    "S",
+    "SIM",
+    "SLF",
+    "T10",
+    "T20",
+    "TC",
+    "TD",
+    "TID",
+    "TRY",
+    "UP",
+    "YTT",
+]
+ignore = [
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    "E501",
+]
+unfixable = ["F541"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101", "S108", "T20"]

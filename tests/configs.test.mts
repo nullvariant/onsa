@@ -132,12 +132,15 @@ describe("configs/python/ruff.expected.toml", () => {
 		expect(content).toContain('line-ending = "lf"');
 	});
 
-	it("defines lint select and ignore rules", () => {
+	it("defines the unified lint select, ignore, unfixable and per-file-ignores", () => {
 		const content = readFileSync(ruffPath, "utf8");
+		expect(content).toContain('select = [\n    "A",\n');
+		expect(content).toContain('    "YTT",\n]');
 		expect(content).toContain(
-			'select = ["B", "D3", "E", "F", "I", "S", "UP", "RUF"]',
+			'ignore = [\n    "RUF001",\n    "RUF002",\n    "RUF003",\n    "E501",\n]',
 		);
-		expect(content).toContain('ignore = ["E501"]');
+		expect(content).toContain('unfixable = ["F541"]');
+		expect(content).toContain('"tests/**/*.py" = ["S101", "S108", "T20"]');
 	});
 });
 
