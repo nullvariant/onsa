@@ -1,8 +1,12 @@
 packages:
   - "packages/*"
+# Dependency build scripts (postinstall and the like) run the dependency author's code with the
+# permissions of whoever installs. Every dependency that has one is denied here, and an
+# unreviewed one stops the install instead of being skipped silently.
 allowBuilds:
-  esbuild: true
+  esbuild: false
   unrs-resolver: false
+strictDepBuilds: true
 # Wait 7 days (10080 minutes) before taking a freshly published version, so a hijacked or
 # withdrawn release is not pulled in. pnpm's own default is 1 day.
 minimumReleaseAge: 10080
